@@ -7,7 +7,7 @@ const Headings = () => {
             <p className="xl:text-3xl md:text-xl w-full ">
                Welcome to the <b>Live Polling System</b>
             </p>
-            <p className="xl:text-xl md:text-lg font-medium text-gray-500">
+            <p className="xl:text-xl md:text-lg font-normal text-gray-500">
                Please select the role that best describes you to begin using the
                live polling system
             </p>

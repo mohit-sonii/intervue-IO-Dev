@@ -1,10 +1,14 @@
 import { configureStore } from '@reduxjs/toolkit'
 import currentUserReducer from './reducers/currentUserReducer'
+import perQuestionTime  from './reducers/questionTimerReducer'
+import questionReducer from './reducers/questionsReducer'
 
 
 export const store = configureStore({
   reducer: {
-    currentUser:currentUserReducer
+    currentUser:currentUserReducer,
+    duration:perQuestionTime,
+    questions:questionReducer
   },
 })
 

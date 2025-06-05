@@ -1,0 +1,194 @@
+import { useEffect, useState, type ChangeEvent } from "react";
+import { useDispatch } from "react-redux";
+import { setDuration } from "../../reducers/questionTimerReducer";
+import { areAllFieldsValid } from "./handleSubmissionLogic";
+import toast from "react-hot-toast";
+import type { OptionsType } from "../../types";
+import { addQuestion } from "../../reducers/questionsReducer";
+
+
+const WriteQuestion = () => {
+
+   const [timeAllowed, setTimeAllowed] = useState(60);
+   const dispatch = useDispatch();
+   const [questionText, setQuestionText] = useState("");
+   const [countCharacter, setCountCharacter] = useState(0);
+
+   const updateDuration = (e: ChangeEvent<HTMLSelectElement>) => {
+      setTimeAllowed(Number(e.target.value));
+      dispatch(setDuration(timeAllowed));
+   };
+   const addCharacter = (e: ChangeEvent<HTMLTextAreaElement>) => {
+      setQuestionText(e.target.value);
+   };
+  
+
+   const [allOptions, setOptions] = useState<OptionsType[]
+   >([]);
+
+   const handleTextChange = (e: ChangeEvent<HTMLInputElement>, id: number) => {
+      const updated = allOptions.map((item) =>
+         item.id == id ? { ...item, optionName: e.target.value } : item
+      );
+      setOptions(updated);
+   };
+   const handleRadioChange = (id: number, option: string) => {
+      const updated = allOptions.map((item) =>
+         item.id == id ? { ...item, correctOption: option } : item
+      );
+      setOptions(updated);
+   };
+   const handleSubmission=()=>{
+      const result = areAllFieldsValid(questionText,allOptions)
+      if(result.status==200){
+         toast.success(result.message);
+         setOptions([])
+         setQuestionText("")
+      }else{
+         toast.error(result.message)
+      }
+   }
+   
+
+   const addOption = () => {
+      if (allOptions.length == 0) {
+         const newObj = {
+            id: 1,
+            optionName: "",
+            correctOption: "",
+         };
+         setOptions([newObj]);
+      } else {
+         const newObj = {
+            id: allOptions.length + 1,
+            optionName: "",
+            correctOption: "",
+         };
+         setOptions([...allOptions, newObj]);
+      }
+   };
+   useEffect(()=>{
+      if(allOptions.length>0)
+      dispatch(addQuestion(allOptions[allOptions.length-1]))
+
+   },[allOptions, dispatch])
+
+ useEffect(() => {
+      const timer = setTimeout(() => {
+         setCountCharacter(questionText.length);
+      }, 500);
+      return () => clearTimeout(timer);
+   }, [questionText]);
+
+   return (
+      <div className="w-full flex gap-5 h-full">
+         <div className="flex justify-between w-[70%] item-center">
+            <p className="font-medium text-md flex items-center">
+               Enter your question
+            </p>
+            <select
+               style={{ padding: "10px 18px" }}
+               className=" outline-0 bg-[#F1F1F1] rounded-md "
+               name="timeAllowed"
+               value={timeAllowed}
+               onChange={(e) => updateDuration(e)}
+            >
+               <option value={60}>60 Seconds</option>
+               <option value={30}>30 Seconds</option>
+            </select>
+         </div>
+         <div className="w-[70%] h-[100px] bg-[#F1F1F1] rounded-md flex justify-center">
+            <textarea
+               style={{ padding: "10px" }}
+               className="w-[95%] h-[65%] outline-0 resize-none"
+               value={questionText}
+               onChange={(e) => addCharacter(e)}
+            />
+            <p
+               className={`w-[90%] h-[10%] text-right font-light text-sm ${
+                  countCharacter <= 100 ? "text-black" : "text-red-500"
+               }`}
+            >
+               {countCharacter}/100
+            </p>
+         </div>
+
+         <div className="w-[60%] h-auto flex flex-col gap-3">
+            <div className="w-full flex flex-row justify-between items-center gap-5">
+               <div className="w-[30%]">
+                  <p className="font-medium text-md flex items-center">
+                     Edit Options
+                  </p>
+               </div>
+               <div className="w-[25%]">
+                  <p className="font-medium text-md flex items-center">
+                     Is it Correct?
+                  </p>
+               </div>
+               {allOptions.map((item, key) => {
+                  return (
+                     <div
+                        className="flex flex-row w-full gap-4 items-center "
+                        key={key}
+                     >
+                        <div className="w-[70%] flex flex-row  gap-4">
+                           <p
+                              className="w-[5%] flex items-center justify-center font-semibold text-[10px] rounded-full bg-[#8F64E1] text-white "
+                              style={{ padding: "3px" }}
+                           >
+                              {item.id}
+                           </p>
+                           <input
+                              type="text"
+                              value={item.optionName}
+                              maxLength={50}
+                              onChange={(e) => handleTextChange(e, item.id)}
+                              className="rounded-md text-sm outline-0 w-[80%] bg-[#F1F1F1] "
+                              style={{ padding: "5px" }}
+                           />
+                        </div>
+                        <div className="w-[25%] flex flex-row justify-between items-center">
+                           <label className=" flex flex-row w-max ">
+                              <input
+                                 type="radio"
+                                 value="yes"
+                                 name={`option${item.id}`}
+                                 onChange={() =>
+                                    handleRadioChange(item.id, "yes")
+                                 }
+                              />
+                              <p style={{ paddingLeft: "4px" }}>Yes</p>
+                           </label>
+                           <label className=" flex flex-row w-max ">
+                              <input
+                                 type="radio"
+                                 value="no"
+                                 name={`option${item.id}`}
+                                 onChange={() =>
+                                    handleRadioChange(item.id, "yes")
+                                 }
+                              />
+                              <p style={{ paddingLeft: "4px" }}>No</p>
+                           </label>
+                        </div>
+                     </div>
+                  );
+               })}
+            </div>
+            <button
+               className="w-[180px] rounded-xl cursor-pointer font-medium text-sm transition-all duration-300 ease-in-out border-[#8F64E1] text-[#8F64E1] bg-white border hover:bg-[#8F64E1] hover:text-white hover:border-white "
+               style={{ padding: "10px" }}
+               onClick={addOption}
+            >
+               + Add more option
+            </button>
+         </div>
+         <div className="w-full flex justify-end items-center">
+               <button className="w-[180px] rounded-xl cursor-pointer font-medium text-sm transition-all duration-300 ease-in-out border-[#8F64E1] text-white bg-[#8F64E1] border hover:bg-white hover:text-[#8F64E1] hover:border-[#8F64E1] "
+               style={{ padding: "10px" }} onClick={handleSubmission}>Ask Question</button>
+         </div>
+      </div>
+   );
+};
+
+export default WriteQuestion;

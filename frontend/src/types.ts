@@ -6,3 +6,9 @@ export enum currentUser {
     Teacher = 'Teacher',
     None = ''
 }
+
+export type OptionsType={
+    id:number,
+    optionName: string;
+         correctOption: string;
+}

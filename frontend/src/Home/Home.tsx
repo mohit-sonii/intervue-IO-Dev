@@ -1,17 +1,14 @@
-import { useSelector } from "react-redux";
 import CardSelection from "./CardSelection";
 import Headings from "./Headings";
-import type { RootState } from "../store";
-import { useNavigate } from "react-router";
-import { useEffect } from "react";
+
 
 const Home = () => {
-   const currentUser = useSelector((state: RootState) => state.currentUser);
-   const navigate = useNavigate();
+   // const currentUser = useSelector((state: RootState) => state.currentUser);
+   // const navigate = useNavigate();
 
-   useEffect(() => {
-      if (currentUser !== "" && localStorage.getItem('currentUser')!==null) navigate(-1);
-   }, [currentUser, navigate]);
+   // useEffect(() => {
+   //    if (currentUser !== "" && localStorage.getItem('currentUser')!==null) navigate(-1);
+   // }, [currentUser, navigate]);
 
    return (
       <div className="flex justify-center items-center w-full h-screen">
