@@ -3,25 +3,16 @@ import { Question } from "../model/question.model.js";
 export const addQuestion = async (req, res) => {
    try {
       const data = req.body;
+      
       const question = await Question.create({
          timeAllowed: parseInt(data.timeAllowed, 10),
          questionName: data.questionName,
          options: data.options,
-         votes: [],
       });
-      // const io = req.app.get("io");
-
-      // io.on("connection", (socket) => {
-      //   console.log(socket,"this is coket")
-      //    socket.on("recieve-question", (question) => {
-      //       console.log(question,"tbs is questions")
-      //       io.emit("recieve-question", question);
-      //    });
-      // });
-      
       res.status(200).json({
          status: 200,
          message: "Question Added Successfully",
+         id:question._id.toString()
       });
       return;
    } catch (err) {

@@ -1,41 +1,30 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
 import Timer from "@/assets/Timer.png";
 import { socket } from "../socket.ts";
 import type { getQuestionType } from "../types";
+import toast from "react-hot-toast";
 
 const QuestionsDisplay = () => {
    const [shouldLoad, setShouldLoad] = useState(true);
-   const [questions, setQuestions] = useState<getQuestionType[]>([]);
+   const [question, setQuestion] = useState<getQuestionType>();
    const [selectedOption, setSelectOption] = useState<number | null>(null);
    const [timerCounter, setTimerCounter] = useState<number>(60);
-
-   const [currentQuestion, setCurrentQuestion] = useState<{
-      timeAllowed: number;
-      id: number;
-      options: string[];
-      questionName: string;
-   }>();
+   const [totalConnected, setTotalConnected] = useState<number>(0);
+   const [stopTimer, setStopTimer] = useState<boolean>(false);
+   const [canViewResult, setCanViewResult] = useState<boolean>(false);
+   const [questionId, setQuestionId] = useState<string>("");
 
    useEffect(() => {
-      questions.map((item, index) => {
-         const newObj = {
-            timeAllowed: item.timeAllowed,
-            id: index + 1,
-            options: item.options,
-            questionName: item.questionName,
-         };
-         setCurrentQuestion(newObj);
-         setTimerCounter(newObj.timeAllowed);
-      });
-   }, [questions]);
+      socket.on("recieve-question", (data, question_id: string) => {
+         setQuestionId(question_id);
+         setQuestion(data.data);
 
-   useEffect(() => {
-      socket.on("recieve-question", (data: getQuestionType) => {
-         setQuestions([...questions, data]);
          setShouldLoad(false);
+      });
+      socket.on("connected-users", (num: number) => {
+         setTotalConnected(num);
       });
       return () => {
          socket.off("recieve-question");
@@ -43,7 +32,7 @@ const QuestionsDisplay = () => {
    }, []);
 
    useEffect(() => {
-      if (timerCounter <= 0) {
+      if (stopTimer || timerCounter <= 0) {
          return;
       }
       const timer = setTimeout(() => {
@@ -56,19 +45,22 @@ const QuestionsDisplay = () => {
       setSelectOption(index);
    };
 
-   const moveForward = () => {
-      
+   const dispayResults = () => {
+      if (selectedOption == null) {
+         toast.loading("Please wait for the next question");
+         return;
+      }
+      setStopTimer(true);
+      setCanViewResult(true);
    };
 
    return (
       <div className="flex w-full h-screen m-auto justify-center flex-col  gap-5 items-center">
          <div>{shouldLoad && <Loading />}</div>
-         {currentQuestion && (
+         {question && (
             <div className="w-[40%] flex h-max gap-6 justify-center items-center ">
                <div className="w-full flex justify-between items-center">
-                  <p className="text-[22px] font-semibold ">
-                     Question {currentQuestion.id}
-                  </p>
+                  <p className="text-[22px] font-semibold ">Question</p>
                   <div className="text-[12px] font-semibold flex flex-row itmes-center justify-center gap-3 w-max">
                      <img src={Timer} alt="Timer" width={20} height={20} />
                      <p
@@ -85,19 +77,19 @@ const QuestionsDisplay = () => {
                      style={{ padding: "15px", borderRadius: "5px 5px 0 0" }}
                      className="font-normal flex items-center text-sm  h-max w-full bg-gradient-to-r from-[#343434] to-[#6E6E6E] text-white "
                   >
-                     {currentQuestion.questionName}
+                     {question.questionName}
                   </div>
                   <div
                      className="w-[95%] items-center justify-center flex b-red-400"
                      style={{ padding: "10px" }}
                   >
                      <div className=" items-center justify-center w-full rounded-md">
-                        {currentQuestion.options.map((item, index) => {
-                           const isSelected = selectedOption === index;
+                        {question.options.map((item, index) => {
+                           const isSelected = selectedOption === index + 1;
                            return (
                               <div
                                  key={index}
-                                 onClick={() => selectOption(index)}
+                                 onClick={() => selectOption(index + 1)}
                                  className={`flex items-center gap-4 h-max w-full text-sm cursor-pointer rounded-md border-[1px]  ${
                                     isSelected
                                        ? "bg-[#f1f1f1] border-[#8f64e1] text-black font-semibold"
@@ -117,7 +109,7 @@ const QuestionsDisplay = () => {
                                  >
                                     {index + 1}
                                  </p>
-                                 {item}
+                                 {item.optionText}
                               </div>
                            );
                         })}
@@ -127,7 +119,7 @@ const QuestionsDisplay = () => {
                <button
                   className="flex  self-end rounded-3xl font-medium cursor-pointer  text-md transition-all duration-300 ease-in-out text-white bg-[#8F64E1] border border-transparent hover:bg-white hover:text-[#8F64E1] hover:border-[#8F64E1] "
                   style={{ padding: "10px 60px" }}
-                  onClick={moveForward}
+                  onClick={dispayResults}
                >
                   Submit
                </button>

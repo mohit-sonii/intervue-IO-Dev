@@ -6,13 +6,20 @@ export enum currentUser {
 }
 
 export type OptionsType={
-    id:number,
+
+    optionIndex:number,
     optionName: string;
     correctOption: string;
+    votes:number
 }
 
 export type getQuestionType={
     timeAllowed:number,
     questionName:string,
-    options:string[]
+    options:{
+        optionText:string,
+        optionIndex:number,
+        votes:0
+    }[],
+    totalVotes:0
 }

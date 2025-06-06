@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, type ChangeEvent } from "react";
 import { areAllFieldsValid } from "./handleSubmissionLogic";
 import toast from "react-hot-toast";
@@ -21,13 +20,13 @@ const WriteQuestion = () => {
 
    const handleTextChange = (e: ChangeEvent<HTMLInputElement>, id: number) => {
       const updated = allOptions.map((item) =>
-         item.id == id ? { ...item, optionName: e.target.value } : item
+         item.optionIndex == id ? { ...item, optionName: e.target.value } : item
       );
       setOptions(updated);
    };
    const handleRadioChange = (id: number, option: string) => {
       const updated = allOptions.map((item) =>
-         item.id == id ? { ...item, correctOption: option } : item
+         item.optionIndex == id ? { ...item, correctOption: option } : item
       );
       setOptions(updated);
    };
@@ -45,13 +44,12 @@ const WriteQuestion = () => {
       }
    };
    const storeinDB = async () => {
-      const options = allOptions.map((item) => item.optionName);
+      const options = allOptions.map((item,index) =>({optionText:item.optionName,optionIndex:index+1,votes:0}));
       try {
          const data = {
             timeAllowed,
             questionName: questionText,
             options,
-            votes: [],
          };
          const result = await axios.post(
             `http://localhost:3000/teacher/add-questions`,
@@ -66,7 +64,8 @@ const WriteQuestion = () => {
             toast.error("Unexpected Error");
             return false;
          }
-         socket.emit('recieve-question',data)
+         socket.emit('recieve-question',{data,question_id:result.data.id})
+         socket.off('recieve-question')
          return true;
       } catch (err) {
          console.log(err);
@@ -77,16 +76,18 @@ const WriteQuestion = () => {
    const addOption = () => {
       if (allOptions.length == 0) {
          const newObj = {
-            id: 1,
+            optionIndex: 1,
             optionName: "",
             correctOption: "",
+            votes:0
          };
          setOptions([newObj]);
       } else {
          const newObj = {
-            id: allOptions.length + 1,
+            optionIndex: allOptions.length + 1,
             optionName: "",
             correctOption: "",
+            votes:0
          };
          setOptions([...allOptions, newObj]);
       }
@@ -156,13 +157,13 @@ const WriteQuestion = () => {
                               className="w-[5%] flex items-center justify-center font-semibold text-[10px] rounded-full bg-[#8F64E1] text-white "
                               style={{ padding: "3px" }}
                            >
-                              {item.id}
+                              {item.optionIndex}
                            </p>
                            <input
                               type="text"
                               value={item.optionName}
                               maxLength={50}
-                              onChange={(e) => handleTextChange(e, item.id)}
+                              onChange={(e) => handleTextChange(e, item.optionIndex)}
                               className="rounded-md text-sm outline-0 w-[80%] bg-[#F1F1F1] "
                               style={{ padding: "5px" }}
                            />
@@ -172,9 +173,9 @@ const WriteQuestion = () => {
                               <input
                                  type="radio"
                                  value="yes"
-                                 name={`option${item.id}`}
+                                 name={`option${item.optionIndex}`}
                                  onChange={() =>
-                                    handleRadioChange(item.id, "yes")
+                                    handleRadioChange(item.optionIndex, "yes")
                                  }
                               />
                               <p style={{ paddingLeft: "4px" }}>Yes</p>
@@ -183,9 +184,9 @@ const WriteQuestion = () => {
                               <input
                                  type="radio"
                                  value="no"
-                                 name={`option${item.id}`}
+                                 name={`option${item.optionIndex}`}
                                  onChange={() =>
-                                    handleRadioChange(item.id, "no")
+                                    handleRadioChange(item.optionIndex, "no")
                                  }
                               />
                               <p style={{ paddingLeft: "4px" }}>No</p>

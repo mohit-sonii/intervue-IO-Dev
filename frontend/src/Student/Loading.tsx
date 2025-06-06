@@ -7,9 +7,9 @@ const Loading = () => {
          <div className="flex flex-col justify-center w-[70%] items-center gap-5">
             <img alt="Logo Image" src={logo} />
             <div className="flex flex-col gap-5 justify-center items-center text-center">
-                <DotLoader color="#8F64E1" size={80} />
-               <p className="xl:text-3xl md:text-xl w-full ">
-                  <b>Wait for teacher to ask questions..</b>
+                <DotLoader className="absolute" color="#8F64E1" size={80} />
+               <p className="xl:text-xl md:text-md w-full font-bold">
+                  Wait for the teacher to ask questions..
                </p>
                
             </div>

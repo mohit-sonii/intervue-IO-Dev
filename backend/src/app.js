@@ -48,10 +48,17 @@ const connectWithDB = async () => {
 
 io.on("connection", (socket) => {
    console.log("Socket connected:", socket.id);
+   const countConnections = io.engine.clientsCount
+
+   io.emit('connected-users',countConnections)
 
    socket.on("recieve-question", (question) => {
       io.emit("recieve-question", question);
    });
+
+   // socket.on("recieve-submission",(index)=>{
+   //    newArr[index]
+   // })
 
    socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);
@@ -61,7 +68,6 @@ io.on("connection", (socket) => {
 const startServer = async () => {
    try {
       await connectWithDB();
-     
       server.listen(PORT, () => {
          console.log(`App is listenting to PORT ${PORT}`);
       });
