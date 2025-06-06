@@ -1,19 +1,16 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+
 import { useEffect, useState } from "react";
 import Loading from "./Loading";
-import { useDispatch } from "react-redux";
-import { broadCast } from "../broadCastQuestion";
 import Timer from "@/assets/Timer.png";
-import { addQuestion } from "../reducers/questionsReducer";
-import axios from "axios";
+import { socket } from "../socket.ts";
 import type { getQuestionType } from "../types";
 
 const QuestionsDisplay = () => {
    const [shouldLoad, setShouldLoad] = useState(true);
-   const [completedQuestions, setCompletedQuestions] = useState<number>(0);
    const [questions, setQuestions] = useState<getQuestionType[]>([]);
-   const dispatch = useDispatch();
    const [selectedOption, setSelectOption] = useState<number | null>(null);
-   const [timerCounter, setTimerCounter] = useState<number>(15);
+   const [timerCounter, setTimerCounter] = useState<number>(60);
 
    const [currentQuestion, setCurrentQuestion] = useState<{
       timeAllowed: number;
@@ -24,19 +21,26 @@ const QuestionsDisplay = () => {
 
    useEffect(() => {
       questions.map((item, index) => {
-         setTimeout(() => {
-            const newObj = {
-               timeAllowed: item.timeAllowed,
-               id: index + 1,
-               options: item.options,
-               questionName: item.questionName,
-            };
-            setCurrentQuestion(newObj);
-            setTimerCounter(newObj.timeAllowed);
-         }, item.timeAllowed);
-         setCompletedQuestions((prev) => prev + 1);
+         const newObj = {
+            timeAllowed: item.timeAllowed,
+            id: index + 1,
+            options: item.options,
+            questionName: item.questionName,
+         };
+         setCurrentQuestion(newObj);
+         setTimerCounter(newObj.timeAllowed);
       });
    }, [questions]);
+
+   useEffect(() => {
+      socket.on("recieve-question", (data: getQuestionType) => {
+         setQuestions([...questions, data]);
+         setShouldLoad(false);
+      });
+      return () => {
+         socket.off("recieve-question");
+      };
+   }, []);
 
    useEffect(() => {
       if (timerCounter <= 0) {
@@ -48,40 +52,13 @@ const QuestionsDisplay = () => {
       return () => clearTimeout(timer);
    }, [timerCounter]);
 
-   useEffect(() => {
-      broadCast.onmessage = (event) => {
-         const recievedQuestion = event.data;
-         dispatch(addQuestion(recievedQuestion));
-         setQuestions([...questions, recievedQuestion]);
-         setShouldLoad(false);
-      };
-   }, [dispatch, questions]);
-
-   useEffect(() => {
-      const loadQuestion = async () => {
-         const response = await axios.get(
-            "http://localhost:3000/teacher/get-questions"
-         );
-         if (response.data.status != 200) {
-            console.log(response.data);
-            return;
-         } else {
-            if (response.data.data.length != 0) {
-               setQuestions(response.data.data);
-               setShouldLoad(false);
-            }
-         }
-      };
-      loadQuestion();
-   }, []);
-
    const selectOption = (index: number) => {
       setSelectOption(index);
    };
 
-   const moveForward=()=>{
-      // show poll result
-   }
+   const moveForward = () => {
+      
+   };
 
    return (
       <div className="flex w-full h-screen m-auto justify-center flex-col  gap-5 items-center">

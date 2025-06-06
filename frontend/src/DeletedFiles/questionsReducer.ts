@@ -1,4 +1,7 @@
 
+// I previously used Reducer to maintain the cross browser functionality but then I shifted to Socket.io to make mylife easier
+
+
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import type { OptionsType } from "../types";

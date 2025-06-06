@@ -1,24 +1,19 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, type ChangeEvent } from "react";
-import { useDispatch } from "react-redux";
-import { setDuration } from "../../reducers/questionTimerReducer";
 import { areAllFieldsValid } from "./handleSubmissionLogic";
 import toast from "react-hot-toast";
 import type { OptionsType } from "../../types";
-import { addQuestion } from "../../reducers/questionsReducer";
 import axios from "axios";
-import { broadCast } from "../../broadCastQuestion";
+import { socket } from "../../socket";
 
 const WriteQuestion = () => {
    const [timeAllowed, setTimeAllowed] = useState(60);
-   const dispatch = useDispatch();
    const [questionText, setQuestionText] = useState("");
    const [countCharacter, setCountCharacter] = useState(0);
    const [allOptions, setOptions] = useState<OptionsType[]>([]);
 
    const updateDuration = (e: ChangeEvent<HTMLSelectElement>) => {
       setTimeAllowed(Number(e.target.value));
-      dispatch(setDuration(timeAllowed));
    };
    const addCharacter = (e: ChangeEvent<HTMLTextAreaElement>) => {
       setQuestionText(e.target.value);
@@ -71,7 +66,7 @@ const WriteQuestion = () => {
             toast.error("Unexpected Error");
             return false;
          }
-         broadCast.postMessage(data)
+         socket.emit('recieve-question',data)
          return true;
       } catch (err) {
          console.log(err);
@@ -97,10 +92,6 @@ const WriteQuestion = () => {
       }
    };
 
-   useEffect(() => {
-      if (allOptions.length > 0)
-         dispatch(addQuestion(allOptions[allOptions.length - 1]));
-   }, [allOptions]);
 
    useEffect(() => {
       const timer = setTimeout(() => {

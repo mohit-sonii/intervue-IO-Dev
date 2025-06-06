@@ -2,7 +2,9 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import mongoose from "mongoose";
-import cors from 'cors'
+import http from "http";
+import { Server } from "socket.io";
+import cors from "cors";
 import teacherRoutes from "./routes/teacher.routes.js";
 import studentRoutes from "./routes/student.routes.js";
 
@@ -14,27 +16,53 @@ dotenv.config();
 const app = express();
 
 app.use(cookieParser());
-app.use(express.json());
 
+app.use(express.json());
+const server = http.createServer(app);
+
+
+const io = new Server(server, {
+   cors: {
+      origin: "http://localhost:5173",
+      methods: ["GET", "POST"],
+      credentials: true
+   },
+   // transports: ["websocket"],
+});
+
+app.set("io", io);
 app.use(
    cors({
-      origin: ['http://localhost:5173'],
+      origin: ["http://localhost:5173"],
       methods: ["GET", "POST", "PATCH", "DELETE"],
       allowedHeaders: ["Content-Type"],
    })
 );
-
 app.use("/teacher", teacherRoutes);
 app.use("/student", studentRoutes);
+
 
 const connectWithDB = async () => {
    await mongoose.connect(`${process.env.DATABASE_URL}`);
 };
 
+io.on("connection", (socket) => {
+   console.log("Socket connected:", socket.id);
+
+   socket.on("recieve-question", (question) => {
+      io.emit("recieve-question", question);
+   });
+
+   socket.on("disconnect", () => {
+      console.log("Socket disconnected:", socket.id);
+   });
+});
+
 const startServer = async () => {
    try {
       await connectWithDB();
-      app.listen(PORT, () => {
+     
+      server.listen(PORT, () => {
          console.log(`App is listenting to PORT ${PORT}`);
       });
    } catch (err) {

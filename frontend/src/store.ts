@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import currentUserReducer from './reducers/currentUserReducer'
 import perQuestionTime  from './reducers/questionTimerReducer'
-import questionReducer from './reducers/questionsReducer'
+import questionReducer from './DeletedFiles/questionsReducer'
 import studentnameReducer from './reducers/studentNameReducer'
 
 export const store = configureStore({
