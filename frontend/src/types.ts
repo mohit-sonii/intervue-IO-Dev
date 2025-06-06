@@ -1,6 +1,4 @@
 
-
-
 export enum currentUser {
     Student = 'Student',
     Teacher = 'Teacher',
@@ -10,5 +8,11 @@ export enum currentUser {
 export type OptionsType={
     id:number,
     optionName: string;
-         correctOption: string;
+    correctOption: string;
+}
+
+export type getQuestionType={
+    timeAllowed:number,
+    questionName:string,
+    options:string[]
 }

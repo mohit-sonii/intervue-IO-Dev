@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useState, type ChangeEvent } from "react";
 import { useDispatch } from "react-redux";
 import { setDuration } from "../../reducers/questionTimerReducer";
@@ -5,14 +6,15 @@ import { areAllFieldsValid } from "./handleSubmissionLogic";
 import toast from "react-hot-toast";
 import type { OptionsType } from "../../types";
 import { addQuestion } from "../../reducers/questionsReducer";
-
+import axios from "axios";
+import { broadCast } from "../../broadCastQuestion";
 
 const WriteQuestion = () => {
-
    const [timeAllowed, setTimeAllowed] = useState(60);
    const dispatch = useDispatch();
    const [questionText, setQuestionText] = useState("");
    const [countCharacter, setCountCharacter] = useState(0);
+   const [allOptions, setOptions] = useState<OptionsType[]>([]);
 
    const updateDuration = (e: ChangeEvent<HTMLSelectElement>) => {
       setTimeAllowed(Number(e.target.value));
@@ -21,10 +23,6 @@ const WriteQuestion = () => {
    const addCharacter = (e: ChangeEvent<HTMLTextAreaElement>) => {
       setQuestionText(e.target.value);
    };
-  
-
-   const [allOptions, setOptions] = useState<OptionsType[]
-   >([]);
 
    const handleTextChange = (e: ChangeEvent<HTMLInputElement>, id: number) => {
       const updated = allOptions.map((item) =>
@@ -38,17 +36,48 @@ const WriteQuestion = () => {
       );
       setOptions(updated);
    };
-   const handleSubmission=()=>{
-      const result = areAllFieldsValid(questionText,allOptions)
-      if(result.status==200){
-         toast.success(result.message);
-         setOptions([])
-         setQuestionText("")
-      }else{
-         toast.error(result.message)
+
+   const handleSubmission = async () => {
+      const result = areAllFieldsValid(questionText, allOptions);
+      if (result.status == 200) {
+         if (await storeinDB()) {
+            setOptions([]);
+            setQuestionText("");
+            toast.success(result.message);
+         }
+      } else {
+         toast.error(result.message);
       }
-   }
-   
+   };
+   const storeinDB = async () => {
+      const options = allOptions.map((item) => item.optionName);
+      try {
+         const data = {
+            timeAllowed,
+            questionName: questionText,
+            options,
+            votes: [],
+         };
+         const result = await axios.post(
+            `http://localhost:3000/teacher/add-questions`,
+            data,
+            {
+               headers: {
+                  "Content-Type": "application/json",
+               },
+            }
+         );
+         if (result.status != 200) {
+            toast.error("Unexpected Error");
+            return false;
+         }
+         broadCast.postMessage(data)
+         return true;
+      } catch (err) {
+         console.log(err);
+         return false;
+      }
+   };
 
    const addOption = () => {
       if (allOptions.length == 0) {
@@ -67,13 +96,13 @@ const WriteQuestion = () => {
          setOptions([...allOptions, newObj]);
       }
    };
-   useEffect(()=>{
-      if(allOptions.length>0)
-      dispatch(addQuestion(allOptions[allOptions.length-1]))
 
-   },[allOptions, dispatch])
+   useEffect(() => {
+      if (allOptions.length > 0)
+         dispatch(addQuestion(allOptions[allOptions.length - 1]));
+   }, [allOptions]);
 
- useEffect(() => {
+   useEffect(() => {
       const timer = setTimeout(() => {
          setCountCharacter(questionText.length);
       }, 500);
@@ -165,7 +194,7 @@ const WriteQuestion = () => {
                                  value="no"
                                  name={`option${item.id}`}
                                  onChange={() =>
-                                    handleRadioChange(item.id, "yes")
+                                    handleRadioChange(item.id, "no")
                                  }
                               />
                               <p style={{ paddingLeft: "4px" }}>No</p>
@@ -184,8 +213,13 @@ const WriteQuestion = () => {
             </button>
          </div>
          <div className="w-full flex justify-end items-center">
-               <button className="w-[180px] rounded-xl cursor-pointer font-medium text-sm transition-all duration-300 ease-in-out border-[#8F64E1] text-white bg-[#8F64E1] border hover:bg-white hover:text-[#8F64E1] hover:border-[#8F64E1] "
-               style={{ padding: "10px" }} onClick={handleSubmission}>Ask Question</button>
+            <button
+               className="w-[180px] rounded-xl cursor-pointer font-medium text-sm transition-all duration-300 ease-in-out border-[#8F64E1] text-white bg-[#8F64E1] border hover:bg-white hover:text-[#8F64E1] hover:border-[#8F64E1] "
+               style={{ padding: "10px" }}
+               onClick={handleSubmission}
+            >
+               Ask Question
+            </button>
          </div>
       </div>
    );

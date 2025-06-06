@@ -8,7 +8,14 @@ export const areAllFieldsValid=(questionText:string,allOptions:OptionsType[]):{s
     if(allOptions.length<2){
         return {status:409,message:"Atleast add 2 options"}
     }
+    let countTrue = 0;
     for(const object of allOptions){
+        if(object.correctOption=='yes'){
+            countTrue++;
+        }
+        if(countTrue>1){
+            return {status:400,message:"No more than 1 option can be true"}
+        }
         if(object.optionName.length==0){
             return {status:409,message:"No Option can be empty !!"}
         }
