@@ -3,6 +3,7 @@ import Home from "./Home/Home";
 import Join from "./Student/Join";
 import AddQuestion from "./Teacher/AddQuestion/AddQuestion";
 import QuestionsDisplay from "./Student/QuestionsDisplay";
+import HistoryPoll from "./Teacher/SeeHistory/HistoryPoll";
 
 function App() {
    return (
@@ -16,6 +17,7 @@ function App() {
 
                {/* Teacher Routes */}
                <Route path="/teacher/add-question" element={<AddQuestion />} />
+               <Route path="/teacher/view-history" element={<HistoryPoll />} />
             </Routes>
          </BrowserRouter>
       </>
