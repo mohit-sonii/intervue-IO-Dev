@@ -36,7 +36,6 @@ const QuestionsDisplay = () => {
       if (!canViewResult) return;
 
       socket.on("recieve-submission", (updatedQuestion) => {
-         console.log(updatedQuestion, "thisis updated question");
          setQuestion(updatedQuestion);
       });
 
@@ -67,6 +66,7 @@ const QuestionsDisplay = () => {
       };
       const result = await axios.post(
          "https://intervue-io-dev.vercel.app/student/questions",
+         // "http://localhost:3000/student/questions",
          data,
          {
             headers: {
@@ -140,7 +140,6 @@ const QuestionsDisplay = () => {
                                     padding: "10px 15px",
                                  }}
                               >
-                                 {/* Vote percentage bar */}
                                  {canViewResult && (
                                     <div
                                        className="absolute top-0 left-0 h-full bg-[#b89cec] transition-all duration-500 ease-in-out"

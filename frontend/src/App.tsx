@@ -4,6 +4,7 @@ import Join from "./Student/Join";
 import AddQuestion from "./Teacher/AddQuestion/AddQuestion";
 import QuestionsDisplay from "./Student/QuestionsDisplay";
 import HistoryPoll from "./Teacher/SeeHistory/HistoryPoll";
+import LivePollDisplay from "./Teacher/LivePollDisplay";
 
 function App() {
    return (
@@ -18,6 +19,7 @@ function App() {
                {/* Teacher Routes */}
                <Route path="/teacher/add-question" element={<AddQuestion />} />
                <Route path="/teacher/view-history" element={<HistoryPoll />} />
+               <Route path="/teacher/live/:id" element={<LivePollDisplay />} />
             </Routes>
          </BrowserRouter>
       </>

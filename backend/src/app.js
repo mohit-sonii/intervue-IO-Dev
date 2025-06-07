@@ -7,6 +7,7 @@ import { Server } from "socket.io";
 import cors from "cors";
 import teacherRoutes from "./routes/teacher.routes.js";
 import studentRoutes from "./routes/student.routes.js";
+import { getQuestion } from "./controllers/teacher.controller.js";
 
 const localhost = process.env.LOCALHOST || "*";
 // const deployedHost = process.env.DEPLOYEDHOST || "*";
@@ -20,26 +21,25 @@ app.use(cookieParser());
 app.use(express.json());
 const server = http.createServer(app);
 
-
 const io = new Server(server, {
    cors: {
       origin: "https://intervue-io-dev.vercel.app",
+      // origin: "http://localhost:3000",
       methods: ["GET", "POST"],
-      credentials: true
+      credentials: true,
    },
    // transports: ["websocket"],
 });
-app.set('io',io)
+app.set("io", io);
 app.use(
    cors({
-      origin: ["http://localhost:5173","https://intervue-io.netlify.app/"],
+      origin: ["http://localhost:5173", "https://intervue-io.netlify.app/"],
       methods: ["GET", "POST", "PATCH", "DELETE"],
       allowedHeaders: ["Content-Type"],
    })
 );
 app.use("/teacher", teacherRoutes);
 app.use("/student", studentRoutes);
-
 
 const connectWithDB = async () => {
    await mongoose.connect(`${process.env.DATABASE_URL}`);
@@ -51,13 +51,28 @@ io.on("connection", (socket) => {
 
    // io.emit('connected-users',countConnections)
 
-   socket.on("recieve-question", (question,id) => {
-      io.emit("recieve-question", question,id);
+   socket.on("recieve-question", (question, id) => {
+      io.emit("recieve-question", question, id);
    });
 
-   socket.on('join-result-room',(questionId)=>{
-      socket.join(`result-room-${questionId}`)
-   })
+   socket.on("join-result-room", (questionId) => {
+      socket.join(`result-room-${questionId}`);
+   });
+
+   socket.on("leave-room", (questionId) => {
+      socket.leave(`result-room-${questionId}`);
+   });
+
+   socket.on("fetch-question", async (questionId) => {
+      try {
+         const question = await getQuestion(questionId);
+         if (question) socket.emit("send-question-data", question);
+         else socket.emit("send-question-data", null);
+      } catch (err) {
+         console.error(err);
+         socket.emit("send-question-data", null);
+      }
+   });
 
    socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);
@@ -77,4 +92,3 @@ const startServer = async () => {
 };
 
 startServer();
-

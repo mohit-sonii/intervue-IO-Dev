@@ -29,22 +29,12 @@ export const addQuestion = async (req, res) => {
    }
 };
 
-export const getQuestion = async (_, res) => {
+export const getQuestion = async (id) => {
    try {
-      const response = await Question.find({});
-      const filtered = response.map((item, key) => ({
-         timeAllowed: item.timeAllowed,
-         questionName: item.questionName,
-         options: item.options,
-      }));
-      res.status(200).json({
-         status: 200,
-         message: "Data Fetched Successfully",
-         data: filtered,
-      });
+      const response = await Question.findById(id);
+      return response
    } catch (err) {
       console.log(err);
-      res.status(500).json({ status: 500, message: "Internal Server Error" });
-      return;
+      return null;
    }
 };

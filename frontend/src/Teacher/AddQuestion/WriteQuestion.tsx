@@ -3,8 +3,10 @@ import { areAllFieldsValid } from "./handleSubmissionLogic";
 import toast from "react-hot-toast";
 import type { OptionsType } from "../../types";
 import axios from "axios";
+import eye from "@/assets/Eye.png";
 import Timer from "@/assets/Timer.png";
 import { socket } from "../../socket";
+import { useNavigate } from "react-router";
 
 const WriteQuestion = () => {
    const [timeAllowed, setTimeAllowed] = useState(60);
@@ -12,6 +14,8 @@ const WriteQuestion = () => {
    const [questionText, setQuestionText] = useState("");
    const [countCharacter, setCountCharacter] = useState(0);
    const [allOptions, setOptions] = useState<OptionsType[]>([]);
+   const [questionId, setQuestionId] = useState<string>("");
+   const navigate = useNavigate();
 
    const updateDuration = (e: ChangeEvent<HTMLSelectElement>) => {
       setTimeAllowed(Number(e.target.value));
@@ -41,22 +45,23 @@ const WriteQuestion = () => {
    useEffect(() => {
       if (!buttonDisable || timeAllowed <= 0) {
          setButtonDisable(false);
+         setQuestionId("");
          return;
       }
       decreaseTimer();
-   }, [buttonDisable,timeAllowed]);
+   }, [buttonDisable, timeAllowed]);
 
    const handleSubmission = async () => {
-      if(buttonDisable){
-         toast.error('Please wait for the submission')
-         return
+      if (buttonDisable) {
+         toast.error("Please wait for the submission");
+         return;
       }
       const result = areAllFieldsValid(questionText, allOptions);
       if (result.status == 200) {
          if (await storeinDB()) {
+            toast.success(result.message);
             setOptions([]);
             setQuestionText("");
-            toast.success(result.message);
             setButtonDisable(true);
          }
       } else {
@@ -77,6 +82,7 @@ const WriteQuestion = () => {
          };
          const result = await axios.post(
             `https://intervue-io-dev.vercel.app/teacher/add-questions`,
+            // `http://localhost:3000/teacher/add-questions`,
             data,
             {
                headers: {
@@ -88,12 +94,14 @@ const WriteQuestion = () => {
             toast.error("Unexpected Error");
             return false;
          }
+         setQuestionId(result.data.id);
          socket.emit("recieve-question", { data, question_id: result.data.id });
-         socket.off("recieve-question");
          return true;
       } catch (err) {
          console.log(err);
          return false;
+      } finally {
+         socket.off("recieve-question");
       }
    };
 
@@ -117,6 +125,11 @@ const WriteQuestion = () => {
       }
    };
 
+   const ViewLive = () => {
+      if (questionId.length !== 0) navigate(`/teacher/live/${questionId}`)
+         else toast.error('No Question has Made')
+   };
+
    useEffect(() => {
       const timer = setTimeout(() => {
          setCountCharacter(questionText.length);
@@ -126,7 +139,7 @@ const WriteQuestion = () => {
 
    return (
       <div className="w-full flex gap-5 h-full">
-         <div className="flex justify-between w-[70%] item-center">
+         <div className="flex justify-between w-[70%]  item-center">
             <p className="font-medium text-md flex items-center">
                Enter your question
             </p>
@@ -232,12 +245,17 @@ const WriteQuestion = () => {
          </div>
          <div className="text-[12px] font-semibold justify-end flex flex-row itmes-center gap-3 w-full">
             <img src={Timer} alt="Timer" width={20} height={20} />
-            <p 
-            >
-               00:{timeAllowed}
-            </p>
+            <p>00:{timeAllowed}</p>
          </div>
-         <div className="w-full flex justify-end items-center">
+         <div className="w-full flex justify-end items-center gap-5">
+            <button
+               className="w-[180px] rounded-xl cursor-pointer font-medium text-sm transition-all duration-300 ease-in-out border-[#8F64E1] text-white bg-[#8f64e1] flex flex-row gap-4 items-center justify-center"
+               style={{ padding: "10px" }}
+               onClick={ViewLive}
+            >
+               <img alt="Logo Image" src={eye} width={20} height={20} />
+               View Live Voting
+            </button>
             <button
                className="w-[180px] rounded-xl cursor-pointer font-medium text-sm transition-all duration-300 ease-in-out border-[#8F64E1] text-white bg-[#8F64E1] border hover:bg-white hover:text-[#8F64E1] hover:border-[#8F64E1] "
                style={{ padding: "10px" }}

@@ -18,7 +18,6 @@ export const addVote = async (req, res) => {
       if (io) {
          io.to(`result-room-${id}`).emit("recieve-submission", question);
       }
-
       res.status(200).json({
          status: 200,
          message: "Data Fetched Succcessfuly",
