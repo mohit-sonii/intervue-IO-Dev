@@ -76,7 +76,7 @@ const WriteQuestion = () => {
             options,
          };
          const result = await axios.post(
-            `http://localhost:3000/teacher/add-questions`,
+            `https://intervue-io-dev.vercel.app/teacher/add-questions`,
             data,
             {
                headers: {

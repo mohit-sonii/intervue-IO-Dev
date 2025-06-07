@@ -32,7 +32,7 @@ const io = new Server(server, {
 app.set('io',io)
 app.use(
    cors({
-      origin: ["http://localhost:5173"],
+      origin: ["http://localhost:5173","https://intervue-io.netlify.app/"],
       methods: ["GET", "POST", "PATCH", "DELETE"],
       allowedHeaders: ["Content-Type"],
    })
