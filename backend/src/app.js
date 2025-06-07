@@ -9,8 +9,7 @@ import teacherRoutes from "./routes/teacher.routes.js";
 import studentRoutes from "./routes/student.routes.js";
 import { getQuestion } from "./controllers/teacher.controller.js";
 
-const localhost = process.env.LOCALHOST || "*";
-// const deployedHost = process.env.DEPLOYEDHOST || "*";
+const DB_URL=process.env.SERVER_URL || 'http://localhost:3000'
 const PORT = process.env.PORT || 3000;
 
 dotenv.config();
@@ -23,19 +22,22 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
    cors: {
-      origin: "https://intervue-io-dev.vercel.app",
+      origin: DB_URL,
       // origin: "http://localhost:3000",
       methods: ["GET", "POST"],
       credentials: true,
+      allowedHeaders: ["Content-Type"],
+
    },
    // transports: ["websocket"],
 });
 app.set("io", io);
 app.use(
    cors({
-      origin: ["http://localhost:5173", "https://intervue-io.netlify.app/"],
+      origin: ["http://localhost:5173", "https://intervue-io.netlify.app"],
       methods: ["GET", "POST", "PATCH", "DELETE"],
       allowedHeaders: ["Content-Type"],
+      credentials:true
    })
 );
 app.use("/teacher", teacherRoutes);
