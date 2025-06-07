@@ -3,10 +3,12 @@ import { areAllFieldsValid } from "./handleSubmissionLogic";
 import toast from "react-hot-toast";
 import type { OptionsType } from "../../types";
 import axios from "axios";
+import Timer from "@/assets/Timer.png";
 import { socket } from "../../socket";
 
 const WriteQuestion = () => {
    const [timeAllowed, setTimeAllowed] = useState(60);
+   const [buttonDisable, setButtonDisable] = useState(false);
    const [questionText, setQuestionText] = useState("");
    const [countCharacter, setCountCharacter] = useState(0);
    const [allOptions, setOptions] = useState<OptionsType[]>([]);
@@ -30,21 +32,43 @@ const WriteQuestion = () => {
       );
       setOptions(updated);
    };
+   const decreaseTimer = () => {
+      setTimeout(() => {
+         setTimeAllowed((prev) => prev - 1);
+      }, 1000);
+   };
+
+   useEffect(() => {
+      if (!buttonDisable || timeAllowed <= 0) {
+         setButtonDisable(false);
+         return;
+      }
+      decreaseTimer();
+   }, [buttonDisable,timeAllowed]);
 
    const handleSubmission = async () => {
+      if(buttonDisable){
+         toast.error('Please wait for the submission')
+         return
+      }
       const result = areAllFieldsValid(questionText, allOptions);
       if (result.status == 200) {
          if (await storeinDB()) {
             setOptions([]);
             setQuestionText("");
             toast.success(result.message);
+            setButtonDisable(true);
          }
       } else {
          toast.error(result.message);
       }
    };
    const storeinDB = async () => {
-      const options = allOptions.map((item,index) =>({optionText:item.optionName,optionIndex:index+1,votes:0}));
+      const options = allOptions.map((item, index) => ({
+         optionText: item.optionName,
+         optionIndex: index + 1,
+         votes: 0,
+      }));
       try {
          const data = {
             timeAllowed,
@@ -64,8 +88,8 @@ const WriteQuestion = () => {
             toast.error("Unexpected Error");
             return false;
          }
-         socket.emit('recieve-question',{data,question_id:result.data.id})
-         socket.off('recieve-question')
+         socket.emit("recieve-question", { data, question_id: result.data.id });
+         socket.off("recieve-question");
          return true;
       } catch (err) {
          console.log(err);
@@ -79,7 +103,7 @@ const WriteQuestion = () => {
             optionIndex: 1,
             optionName: "",
             correctOption: "",
-            votes:0
+            votes: 0,
          };
          setOptions([newObj]);
       } else {
@@ -87,12 +111,11 @@ const WriteQuestion = () => {
             optionIndex: allOptions.length + 1,
             optionName: "",
             correctOption: "",
-            votes:0
+            votes: 0,
          };
          setOptions([...allOptions, newObj]);
       }
    };
-
 
    useEffect(() => {
       const timer = setTimeout(() => {
@@ -163,7 +186,9 @@ const WriteQuestion = () => {
                               type="text"
                               value={item.optionName}
                               maxLength={50}
-                              onChange={(e) => handleTextChange(e, item.optionIndex)}
+                              onChange={(e) =>
+                                 handleTextChange(e, item.optionIndex)
+                              }
                               className="rounded-md text-sm outline-0 w-[80%] bg-[#F1F1F1] "
                               style={{ padding: "5px" }}
                            />
@@ -196,6 +221,7 @@ const WriteQuestion = () => {
                   );
                })}
             </div>
+
             <button
                className="w-[180px] rounded-xl cursor-pointer font-medium text-sm transition-all duration-300 ease-in-out border-[#8F64E1] text-[#8F64E1] bg-white border hover:bg-[#8F64E1] hover:text-white hover:border-white "
                style={{ padding: "10px" }}
@@ -203,6 +229,13 @@ const WriteQuestion = () => {
             >
                + Add more option
             </button>
+         </div>
+         <div className="text-[12px] font-semibold justify-end flex flex-row itmes-center gap-3 w-full">
+            <img src={Timer} alt="Timer" width={20} height={20} />
+            <p 
+            >
+               00:{timeAllowed}
+            </p>
          </div>
          <div className="w-full flex justify-end items-center">
             <button

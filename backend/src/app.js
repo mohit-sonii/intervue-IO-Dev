@@ -29,8 +29,7 @@ const io = new Server(server, {
    },
    // transports: ["websocket"],
 });
-
-app.set("io", io);
+app.set('io',io)
 app.use(
    cors({
       origin: ["http://localhost:5173"],
@@ -48,17 +47,17 @@ const connectWithDB = async () => {
 
 io.on("connection", (socket) => {
    console.log("Socket connected:", socket.id);
-   const countConnections = io.engine.clientsCount
+   // const countConnections = io.engine.clientsCount
 
-   io.emit('connected-users',countConnections)
+   // io.emit('connected-users',countConnections)
 
-   socket.on("recieve-question", (question) => {
-      io.emit("recieve-question", question);
+   socket.on("recieve-question", (question,id) => {
+      io.emit("recieve-question", question,id);
    });
 
-   // socket.on("recieve-submission",(index)=>{
-   //    newArr[index]
-   // })
+   socket.on('join-result-room',(questionId)=>{
+      socket.join(`result-room-${questionId}`)
+   })
 
    socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.id);
@@ -78,3 +77,4 @@ const startServer = async () => {
 };
 
 startServer();
+

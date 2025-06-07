@@ -5,34 +5,49 @@ import Timer from "@/assets/Timer.png";
 import { socket } from "../socket.ts";
 import type { getQuestionType } from "../types";
 import toast from "react-hot-toast";
+import axios from "axios";
 
 const QuestionsDisplay = () => {
    const [shouldLoad, setShouldLoad] = useState(true);
    const [question, setQuestion] = useState<getQuestionType>();
    const [selectedOption, setSelectOption] = useState<number | null>(null);
-   const [timerCounter, setTimerCounter] = useState<number>(60);
-   const [totalConnected, setTotalConnected] = useState<number>(0);
+   const [timerCounter, setTimerCounter] = useState<number>(0);
    const [stopTimer, setStopTimer] = useState<boolean>(false);
    const [canViewResult, setCanViewResult] = useState<boolean>(false);
    const [questionId, setQuestionId] = useState<string>("");
 
    useEffect(() => {
-      socket.on("recieve-question", (data, question_id: string) => {
+      socket.on("recieve-question", ({ data, question_id }) => {
          setQuestionId(question_id);
-         setQuestion(data.data);
-
+         setQuestion(data);
+         setTimerCounter(data.timeAllowed);
          setShouldLoad(false);
       });
-      socket.on("connected-users", (num: number) => {
-         setTotalConnected(num);
-      });
+      // socket.on("connected-users", (num: number) => {
+      //    setTotalConnected(num);
+      // });
       return () => {
          socket.off("recieve-question");
+         socket.off("connected-users");
       };
    }, []);
 
    useEffect(() => {
+      if (!canViewResult) return;
+
+      socket.on("recieve-submission", (updatedQuestion) => {
+         console.log(updatedQuestion, "thisis updated question");
+         setQuestion(updatedQuestion);
+      });
+
+      return () => {
+         socket.off("recieve-submission");
+      };
+   }, [canViewResult]);
+
+   useEffect(() => {
       if (stopTimer || timerCounter <= 0) {
+         setTimerCounter(60);
          return;
       }
       const timer = setTimeout(() => {
@@ -45,13 +60,25 @@ const QuestionsDisplay = () => {
       setSelectOption(index);
    };
 
-   const dispayResults = () => {
-      if (selectedOption == null) {
-         toast.loading("Please wait for the next question");
-         return;
-      }
-      setStopTimer(true);
+   const dispayResults = async () => {
+      const data = {
+         id: questionId,
+         voteOptionIndex: selectedOption,
+      };
+      const result = await axios.post(
+         "http://localhost:3000/student/questions",
+         data,
+         {
+            headers: {
+               "Content-Type": "application/json",
+            },
+         }
+      );
       setCanViewResult(true);
+      setQuestion(result.data.updatedData);
+      setStopTimer(true);
+      toast.custom("Please wait for the next question");
+      socket.emit("join-result-room", questionId);
    };
 
    return (
@@ -85,44 +112,89 @@ const QuestionsDisplay = () => {
                   >
                      <div className=" items-center justify-center w-full rounded-md">
                         {question.options.map((item, index) => {
+                           const votePercent =
+                              question.totalVotes > 0
+                                 ? Math.round(
+                                      (item.votes / question.totalVotes) * 100
+                                   )
+                                 : 0;
+
                            const isSelected = selectedOption === index + 1;
+
                            return (
                               <div
                                  key={index}
-                                 onClick={() => selectOption(index + 1)}
-                                 className={`flex items-center gap-4 h-max w-full text-sm cursor-pointer rounded-md border-[1px]  ${
-                                    isSelected
-                                       ? "bg-[#f1f1f1] border-[#8f64e1] text-black font-semibold"
-                                       : "bg-[#f3f0f0] border-[#a3a1a1] text-gray-700"
-                                 }`}
+                                 onClick={() =>
+                                    !canViewResult && selectOption(index + 1)
+                                 }
+                                 className={`relative group h-max w-full cursor-pointer rounded-md border-[1px] overflow-hidden 
+            ${
+               canViewResult
+                  ? "border-[#8f64e1] bg-[#f9f9f9]"
+                  : isSelected
+                  ? "border-[#8f64e1] bg-[#f1f1f1]"
+                  : "border-[#a3a1a1] bg-[#f3f0f0]"
+            }`}
                                  style={{
-                                    padding: "10px",
                                     marginBottom: "10px",
+                                    padding: "10px 15px",
                                  }}
                               >
-                                 <p
-                                    className={`w-[25px] h-[25px] flex items-center justify-center rounded-full text-[10px] font-bold ${
-                                       isSelected
-                                          ? "text-white bg-[#8f64e1]"
-                                          : "text-[#a3a1aK1] bg-[#dbd9d9]"
-                                    }`}
-                                 >
-                                    {index + 1}
-                                 </p>
-                                 {item.optionText}
+                                 {/* Vote percentage bar */}
+                                 {canViewResult && (
+                                    <div
+                                       className="absolute top-0 left-0 h-full bg-[#b89cec] transition-all duration-500 ease-in-out"
+                                       style={{
+                                          width: `${votePercent}%`,
+                                          zIndex: 0,
+                                       }}
+                                    />
+                                 )}
+
+                                 <div className="flex items-center justify-between z-10 relative">
+                                    <div className="flex items-center gap-4 text-sm">
+                                       <p
+                                          className={`w-[25px] h-[25px] flex items-center justify-center rounded-full text-[10px] font-bold 
+                     ${
+                        isSelected
+                           ? "text-white bg-[#8f64e1]"
+                           : "text-[#a3a1a1] bg-[#dbd9d9]"
+                     }`}
+                                       >
+                                          {index + 1}
+                                       </p>
+                                       <span
+                                          className={`${
+                                             isSelected && !canViewResult
+                                                ? "font-semibold text-black"
+                                                : ""
+                                          }`}
+                                       >
+                                          {item.optionText}
+                                       </span>
+                                    </div>
+
+                                    {canViewResult && (
+                                       <div className="text-sm  text-black font-semibold">
+                                          {votePercent}%
+                                       </div>
+                                    )}
+                                 </div>
                               </div>
                            );
                         })}
                      </div>
                   </div>
                </div>
-               <button
-                  className="flex  self-end rounded-3xl font-medium cursor-pointer  text-md transition-all duration-300 ease-in-out text-white bg-[#8F64E1] border border-transparent hover:bg-white hover:text-[#8F64E1] hover:border-[#8F64E1] "
-                  style={{ padding: "10px 60px" }}
-                  onClick={dispayResults}
-               >
-                  Submit
-               </button>
+               {!canViewResult && (
+                  <button
+                     className="flex  self-end rounded-3xl font-medium cursor-pointer  text-md transition-all duration-300 ease-in-out text-white bg-[#8F64E1] border border-transparent hover:bg-white hover:text-[#8F64E1] hover:border-[#8F64E1] "
+                     style={{ padding: "10px 60px" }}
+                     onClick={dispayResults}
+                  >
+                     Submit
+                  </button>
+               )}
             </div>
          )}
       </div>

@@ -3,7 +3,7 @@ import { Question } from "../model/question.model.js";
 export const addQuestion = async (req, res) => {
    try {
       const data = req.body;
-      
+
       const question = await Question.create({
          timeAllowed: parseInt(data.timeAllowed, 10),
          questionName: data.questionName,
@@ -12,8 +12,15 @@ export const addQuestion = async (req, res) => {
       res.status(200).json({
          status: 200,
          message: "Question Added Successfully",
-         id:question._id.toString()
+         id: question._id.toString(),
       });
+      const io = req.app.get('io')
+      if (io) {
+         io.to(`result-room-${question._id.toString()}`).emit(
+            "recieve-submission",
+            question
+         );
+      }
       return;
    } catch (err) {
       console.log(err);
