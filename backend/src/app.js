@@ -7,10 +7,8 @@ import { Server } from "socket.io";
 import cors from "cors";
 import teacherRoutes from "./routes/teacher.routes.js";
 import studentRoutes from "./routes/student.routes.js";
-import { getQuestion } from "./controllers/teacher.controller.js";
+import { getQuestion } from "./controllers/methods.controller.js";
 
-const DB_URL=process.env.SERVER_URL || 'http://localhost:3000'
-const PORT = process.env.PORT || 3000;
 
 dotenv.config();
 const app = express();
@@ -22,7 +20,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
    cors: {
-      origin: DB_URL,
+      origin: process.env.SERVER_URL,
       // origin: "http://localhost:3000",
       methods: ["GET", "POST"],
       credentials: true,
@@ -34,7 +32,7 @@ const io = new Server(server, {
 app.set("io", io);
 app.use(
    cors({
-      origin: ["http://localhost:5173", "https://intervue-io.netlify.app"],
+      origin: ["http://localhost:5173", process.env.FRONTEND_URL],
       methods: ["GET", "POST", "PATCH", "DELETE"],
       allowedHeaders: ["Content-Type"],
       credentials:true
@@ -84,8 +82,8 @@ io.on("connection", (socket) => {
 const startServer = async () => {
    try {
       await connectWithDB();
-      server.listen(PORT, () => {
-         console.log(`App is listenting to PORT ${PORT}`);
+      server.listen(process.env.PORT, () => {
+         console.log(`App is listenting to PORT ${process.env.PORT}`);
       });
    } catch (err) {
       console.log(err);
