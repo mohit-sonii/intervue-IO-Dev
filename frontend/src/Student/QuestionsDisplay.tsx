@@ -77,8 +77,12 @@ const QuestionsDisplay = () => {
       setCanViewResult(true);
       setQuestion(result.data.updatedData);
       setStopTimer(true);
-      toast.custom("Please wait for the next question");
+      toast.success("Please wait for the next question");
       socket.emit("join-result-room", questionId);
+
+      return ()=>{
+         socket.emit('leave-room',questionId)
+      }
    };
 
    return (

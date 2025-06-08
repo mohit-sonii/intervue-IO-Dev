@@ -138,7 +138,7 @@ const WriteQuestion = () => {
    }, [questionText]);
 
    return (
-      <div className="w-full flex gap-5 h-full">
+      <div className="w-full flex gap-5 h-full" style={{padding:'20px'}}>
          <div className="flex justify-between w-[70%]  item-center">
             <p className="font-medium text-md flex items-center">
                Enter your question
@@ -190,7 +190,7 @@ const WriteQuestion = () => {
                      >
                         <div className="w-[70%] flex flex-row  gap-4">
                            <p
-                              className="w-[5%] flex items-center justify-center font-semibold text-[10px] rounded-full bg-[#8F64E1] text-white "
+                              className="w-[20px] h-[20px] flex items-center justify-center font-semibold text-[10px] rounded-full bg-[#8F64E1] text-white "
                               style={{ padding: "3px" }}
                            >
                               {item.optionIndex}

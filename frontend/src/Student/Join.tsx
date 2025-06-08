@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { studentname } from "../reducers/studentNameReducer";
 import {type RootState } from "../store";
+import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
 
 const Join = () => {
@@ -19,6 +20,8 @@ const Join = () => {
    useEffect(() => {
       if (studentName != "") {
          navigate(`/student/questions`);
+      }else{
+         toast.error('Name cannot be empty')
       }
    }, [navigate]);
    return (

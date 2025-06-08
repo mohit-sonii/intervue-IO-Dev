@@ -1,6 +1,5 @@
 import { Question } from "../model/question.model.js";
 
-
 export const addVote = async (req, res) => {
    try {
       const { id, voteOptionIndex } = req.body;
@@ -14,7 +13,7 @@ export const addVote = async (req, res) => {
          question.totalVotes += 1;
          await question.save();
       }
-      const io = req.app.get('io');
+      const io = req.app.get("io");
       if (io) {
          io.to(`result-room-${id}`).emit("recieve-submission", question);
       }
@@ -43,7 +42,7 @@ export const addQuestion = async (req, res) => {
          message: "Question Added Successfully",
          id: question._id.toString(),
       });
-      const io = req.app.get('io')
+      const io = req.app.get("io");
       if (io) {
          io.to(`result-room-${question._id.toString()}`).emit(
             "recieve-submission",
@@ -61,9 +60,21 @@ export const addQuestion = async (req, res) => {
 export const getQuestion = async (id) => {
    try {
       const response = await Question.findById(id);
-      return response
+      return response;
    } catch (err) {
       console.log(err);
       return null;
+   }
+};
+
+export const getAllQuestions = async (_, res) => {
+   try {
+      const response = await Question.find({});
+      response.reverse();
+      res.status(200).json({ status: 200, data: response });
+      return;
+   } catch (er) {
+      res.status(500).json({ status: 500, message: "Internal Server Error" });
+      return;
    }
 };
