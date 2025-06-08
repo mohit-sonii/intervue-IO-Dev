@@ -80,9 +80,9 @@ const QuestionsDisplay = () => {
       toast.success("Please wait for the next question");
       socket.emit("join-result-room", questionId);
 
-      return ()=>{
-         socket.emit('leave-room',questionId)
-      }
+      // return ()=>{
+      //    socket.emit('leave-room',questionId)
+      // }
    };
 
    return (

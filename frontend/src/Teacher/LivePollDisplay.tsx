@@ -29,7 +29,7 @@ const LivePollDisplay = () => {
       });
       console.log(question);
       return () => {
-         socket.emit("leave-room", id);
+         // socket.emit("leave-room", id);
          socket.off("recieve-submission");
          socket.off("send-question-data");
       };

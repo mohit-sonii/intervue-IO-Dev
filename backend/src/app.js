@@ -20,8 +20,8 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
    cors: {
-      origin: process.env.SERVER_URL,
-      // origin: "http://localhost:3000",
+      // origin: process.env.SERVER_URL,
+      origin: "http://localhost:3000",
       methods: ["GET", "POST"],
       credentials: true,
       allowedHeaders: ["Content-Type"],
@@ -59,9 +59,9 @@ io.on("connection", (socket) => {
       socket.join(`result-room-${questionId}`);
    });
 
-   socket.on("leave-room", (questionId) => {
-      socket.leave(`result-room-${questionId}`);
-   });
+   // socket.on("leave-room", (questionId) => {
+   //    socket.leave(`result-room-${questionId}`);
+   // });
 
    socket.on("fetch-question", async (questionId) => {
       try {
