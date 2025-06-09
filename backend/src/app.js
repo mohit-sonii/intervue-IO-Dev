@@ -27,7 +27,7 @@ const io = new Server(server, {
       allowedHeaders: ["Content-Type"],
 
    },
-   // transports: ["websocket"],
+   transports: ["websocket"],
 });
 app.set("io", io);
 app.use(

@@ -65,7 +65,7 @@ const QuestionsDisplay = () => {
          voteOptionIndex: selectedOption,
       };
       const result = await axios.post(
-         "https://intervue-io-dev.vercel.app/student/questions",
+         "https://intervue-io-dev-production.up.railway.app/student/questions",
          // "http://localhost:3000/student/questions",
          data,
          {
