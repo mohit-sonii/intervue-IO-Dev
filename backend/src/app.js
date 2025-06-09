@@ -9,7 +9,6 @@ import teacherRoutes from "./routes/teacher.routes.js";
 import studentRoutes from "./routes/student.routes.js";
 import { getQuestion } from "./controllers/methods.controller.js";
 
-
 dotenv.config();
 const app = express();
 
@@ -25,7 +24,6 @@ const io = new Server(server, {
       methods: ["GET", "POST"],
       credentials: true,
       allowedHeaders: ["Content-Type"],
-
    },
    transports: ["websocket"],
 });
@@ -35,7 +33,7 @@ app.use(
       origin: ["http://localhost:5173", process.env.FRONTEND_URL],
       methods: ["GET", "POST", "PATCH", "DELETE"],
       allowedHeaders: ["Content-Type"],
-      credentials:true
+      credentials: true,
    })
 );
 app.use("/teacher", teacherRoutes);
@@ -59,9 +57,13 @@ io.on("connection", (socket) => {
       socket.join(`result-room-${questionId}`);
    });
 
-   // socket.on("leave-room", (questionId) => {
-   //    socket.leave(`result-room-${questionId}`);
-   // });
+   socket.on("connect_error", (err) => {
+      console.error("Socket connection error:", err);
+   });
+   
+   socket.on("leave-room", (questionId) => {
+      socket.leave(`result-room-${questionId}`);
+   });
 
    socket.on("fetch-question", async (questionId) => {
       try {

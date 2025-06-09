@@ -81,7 +81,7 @@ const WriteQuestion = () => {
             options,
          };
          const result = await axios.post(
-            `https://intervue-io-dev-production.up.railway.app/teacher/add-questions`,
+            `https://intervue-io-dev.vercel.app/teacher/add-questions`,
             // `http://localhost:3000/teacher/add-questions`,
             data,
             {
