@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import CardSelection from "./CardSelection";
 import Headings from "./Headings";
-
+import toast from "react-hot-toast";
 
 const Home = () => {
    // const currentUser = useSelector((state: RootState) => state.currentUser);
@@ -9,6 +10,10 @@ const Home = () => {
    // useEffect(() => {
    //    if (currentUser !== "" && localStorage.getItem('currentUser')!==null) navigate(-1);
    // }, [currentUser, navigate]);
+
+   useEffect(()=>{
+      toast.error("Please run locally, as Vercel does not support Websockets. Find the RunLocal.md for setting up")
+   },[])
 
    return (
       <div className="flex justify-center items-center w-full h-screen">
