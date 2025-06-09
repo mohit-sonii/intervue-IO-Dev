@@ -27,7 +27,7 @@ const QuestionsDisplay = () => {
       //    setTotalConnected(num);
       // });
       return () => {
-         socket.off("recieve-question");
+         // socket.off("recieve-question");
          socket.off("connected-users");
       };
    }, []);
@@ -40,7 +40,7 @@ const QuestionsDisplay = () => {
       });
 
       return () => {
-         socket.off("recieve-submission");
+         // socket.off("recieve-submission");
       };
    }, [canViewResult]);
 
@@ -65,8 +65,8 @@ const QuestionsDisplay = () => {
          voteOptionIndex: selectedOption,
       };
       const result = await axios.post(
-         "https://intervue-io-dev.vercel.app/student/questions",
-         // "http://localhost:3000/student/questions",
+         // "https://intervue-io-dev.vercel.app/student/questions",
+         "http://localhost:3000/student/questions",
          data,
          {
             headers: {

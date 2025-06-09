@@ -81,8 +81,8 @@ const WriteQuestion = () => {
             options,
          };
          const result = await axios.post(
-            `https://intervue-io-dev.vercel.app/teacher/add-questions`,
-            // `http://localhost:3000/teacher/add-questions`,
+            // `https://intervue-io-dev.vercel.app/teacher/add-questions`,
+            `http://localhost:3000/teacher/add-questions`,
             data,
             {
                headers: {
@@ -101,7 +101,7 @@ const WriteQuestion = () => {
          console.log(err);
          return false;
       } finally {
-         socket.off("recieve-question");
+         // socket.off("recieve-question");
       }
    };
 

@@ -17,6 +17,7 @@ const LivePollDisplay = () => {
       socket.emit("fetch-question", id);
 
       socket.on("recieve-submission", (updatedQuestion) => {
+         console.log("updated questions form live ",updatedQuestion)
          setQuestion(updatedQuestion);
          setLoading(false);
       });
@@ -27,9 +28,8 @@ const LivePollDisplay = () => {
             setLoading(false);
          }
       });
-      console.log(question);
       return () => {
-         // socket.emit("leave-room", id);
+         socket.emit("leave-room", id);
          socket.off("recieve-submission");
          socket.off("send-question-data");
       };
