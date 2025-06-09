@@ -1,29 +1,29 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import logo from "@/assets/logo.jpg";
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { studentname } from "../reducers/studentNameReducer";
-import {type RootState } from "../store";
+import { useState } from "react";
+
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router";
+import { socket } from "../socket";
+import { useDispatch } from "react-redux";
+import { setUser } from "../reducers/currentUserReducer";
 
 const Join = () => {
    const [name, setName] = useState<string>("");
-   const dispatch = useDispatch();
    const navigate = useNavigate();
-   const studentName = useSelector((state:RootState)=>state.studentName)
+   const dispatch = useDispatch();
 
    const moveForward = () => {
-      dispatch(studentname(name));
+      if (name == "") {
+         toast.error("Name cannot be empty");
+         return;
+      }
+
+      dispatch(setUser(name));
+      socket.emit("set-username", name);
       navigate(`/student/questions`);
    };
-   useEffect(() => {
-      if (studentName != "") {
-         navigate(`/student/questions`);
-      }else{
-         toast.error('Name cannot be empty')
-      }
-   }, [navigate]);
+
    return (
       <div className="w-full flex flex-col gap-10 h-screen justify-center items-center">
          <div className="flex flex-col justify-center w-[70%] items-center gap-5">

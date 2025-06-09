@@ -19,13 +19,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
    cors: {
-      origin: process.env.SERVER_URL,
+      origin: ["http://localhost:3000",process.env.SERVER_URL],
       // origin: "http://localhost:3000",
       methods: ["GET", "POST"],
       credentials: true,
       allowedHeaders: ["Content-Type"],
    },
-   transports: ["websocket"],
+   // transports: ["websocket"],
 });
 app.set("io", io);
 app.use(
@@ -43,11 +43,18 @@ const connectWithDB = async () => {
    await mongoose.connect(`${process.env.DATABASE_URL}`);
 };
 
+const connectedUser  = new Map();
 io.on("connection", (socket) => {
    console.log("Socket connected:", socket.id);
    // const countConnections = io.engine.clientsCount
 
    // io.emit('connected-users',countConnections)
+   socket.on("set-username",(username)=>{
+      connectedUser.set(socket.id,username)
+      console.log(`${username} is connetcted with ${socket.id}`)
+      io.emit("users-list",Array.from(connectedUser.values()))
+      socket.emit("users-list",Array.from(connectedUser.values()))
+   })
 
    socket.on("recieve-question", (question, id) => {
       io.emit("recieve-question", question, id);
@@ -77,6 +84,8 @@ io.on("connection", (socket) => {
    });
 
    socket.on("disconnect", () => {
+      connectedUser.delete(socket.id)
+      socket.emit("users-list",Array.from(connectedUser.values()))
       console.log("Socket disconnected:", socket.id);
    });
 });
